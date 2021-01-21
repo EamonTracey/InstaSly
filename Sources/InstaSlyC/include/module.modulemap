@@ -1,0 +1,4 @@
+module InstaSlyC {
+    umbrella "."
+    export *
+}

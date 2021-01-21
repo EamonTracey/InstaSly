@@ -1,0 +1,9 @@
+Package: com.eamontracey.instasly
+Name: InstaSly
+Version: 1.0
+Architecture: iphoneos-arm
+Description: Confirm liking posts and following users on Instagram
+Maintainer: Eamon Tracey
+Author: Eamon Tracey
+Section: Tweaks
+Depends: ${ORION}, preferenceloader, firmware (>= 13.0)

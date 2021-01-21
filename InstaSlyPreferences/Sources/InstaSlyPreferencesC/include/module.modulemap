@@ -1,0 +1,4 @@
+module InstaSlyPreferencesC {
+    umbrella "."
+    export *
+}
