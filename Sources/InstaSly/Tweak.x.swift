@@ -1,25 +1,23 @@
 import UIKit
 import Orion
+import NomaePreferences
 import InstaSlyC
 
 typealias IS = InstaSly
 
 struct InstaSly: Tweak {
     
-    static var prefs: NSDictionary? { NSDictionary(contentsOfFile: "/var/mobile/Library/Preferences/com.eamontracey.instaslypreferences.plist") }
+    static let identifier = "com.eamontracey.instasly"
     
     // Preferences
-    static var enabled: Bool = true
-    static var confirmDoubleTap: Bool = true
-    static var confirmHeartTap: Bool = false
-    static var confirmFollow: Bool = true
-    static var alertStyle: UIAlertController.Style = .alert
-    
-    // Initializer
-    init() {
-        loadPreferences(nil, nil, nil, nil, nil)
-        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), nil, loadPreferences, "com.eamontracey.instaslypreferences/update" as CFString, nil, .coalesce)
-    }
+    @Preference("enabled", identifier: identifier) static var enabled = true
+    @Preference("confirmDoubleTap", identifier: identifier) static var confirmDoubleTap = true
+    @Preference("confirmHeartTap", identifier: identifier) static var confirmHeartTap = false
+    @Preference("confirmFollow", identifier: identifier) static var confirmFollow = true
+    @Preference("alertStyle", identifier: identifier) static var alertStyle = 1
+    @Preference("alwaysAlert", identifier: identifier) static var alwaysAlert = true
+    @Preference("minimumPostAge", identifier: identifier) static var minimumPostAge = 604800 // Time stored in seconds
+    @Preference("postAgeMultiplier", identifier: identifier) static var postAgeMultiplier = 1
     
 }
 
@@ -27,9 +25,11 @@ class IGFeedSectionControllerHook: ClassHook<IGFeedSectionController> {
 
     var username: String { target.media.user.username }
     var hasLiked: Bool { target.media.hasLiked }
+    var postOldEnough: Bool { NSDate.now.timeIntervalSince(target.media.takenAtDate.date) > Double(IS.minimumPostAge * IS.postAgeMultiplier) }
+    // Date() caused issues, so use NSDate.now
     
     func feedItemPhotoCellDidDoubleTapToLike(_ cell: Any, locationInfo: Any) {
-        if IS.confirmDoubleTap && !hasLiked {
+        if IS.confirmDoubleTap && !hasLiked && (IS.alwaysAlert || postOldEnough) {
             confirmExecution("Like \(username)'s photo?") {
                 self.orig.feedItemPhotoCellDidDoubleTapToLike(cell, locationInfo: locationInfo)
             }
@@ -39,7 +39,7 @@ class IGFeedSectionControllerHook: ClassHook<IGFeedSectionController> {
     }
     
     func videoCellDidDoubleTap(_ cell: Any) {
-        if IS.confirmDoubleTap && !hasLiked {
+        if IS.confirmDoubleTap && !hasLiked && (IS.alwaysAlert || postOldEnough) {
             confirmExecution("Like \(username)'s video?") {
                 self.orig.videoCellDidDoubleTap(cell)
             }
@@ -49,7 +49,7 @@ class IGFeedSectionControllerHook: ClassHook<IGFeedSectionController> {
     }
     
     func feedItemPageCellDidDoubleTapToLike(_ cell: Any) {
-        if IS.confirmDoubleTap && !hasLiked {
+        if IS.confirmDoubleTap && !hasLiked && (IS.alwaysAlert || postOldEnough) {
             confirmExecution("Like \(username)'s post?") {
                 self.orig.feedItemPageCellDidDoubleTapToLike(cell)
             }
@@ -59,7 +59,7 @@ class IGFeedSectionControllerHook: ClassHook<IGFeedSectionController> {
     }
     
     func feedItemActionCellDidTapLikeButton(_ cell: Any) {
-        if IS.confirmHeartTap && !hasLiked {
+        if IS.confirmHeartTap && !hasLiked && (IS.alwaysAlert || postOldEnough) {
             confirmExecution("Like \(username)'s post?") {
                 self.orig.feedItemActionCellDidTapLikeButton(cell)
             }
@@ -97,8 +97,8 @@ class IGFollowControllerHook: ClassHook<IGFollowController> {
 }
 
 private func confirmExecution(_ title: String?, executionClosure: @escaping () -> Void) {
-    let alert = UIAlertController(title: title, message: nil, preferredStyle: IS.alertStyle)
-    let yesAction = UIAlertAction(title: "Yes", style: .default) {_ in executionClosure()}
+    let alert = UIAlertController(title: title, message: nil, preferredStyle: UIAlertController.Style(rawValue: IS.alertStyle) ?? .alert)
+    let yesAction = UIAlertAction(title: "Yes", style: .default) { _ in executionClosure() }
     let noAction = UIAlertAction(title: "No", style: .destructive)
     alert.addAction(yesAction)
     alert.addAction(noAction)

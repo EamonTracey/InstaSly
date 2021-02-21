@@ -9,7 +9,7 @@
 		<key>cell</key>
 		<string>PSLinkCell</string>
 		<key>detail</key>
-		<string>InstaSlyPreferences.RootListController</string>
+		<string>InstaSlyPreferences.PreferencesController</string>
 		<key>icon</key>
 		<string>icon.png</string>
 		<key>isController</key>

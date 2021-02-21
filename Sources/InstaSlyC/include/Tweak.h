@@ -4,9 +4,14 @@
 @property NSString *username;
 @end
 
+@interface IGDate
+@property NSDate *date;
+@end
+
 @interface IGMedia
 @property BOOL hasLiked;
 @property IGUser *user;
+@property IGDate *takenAtDate;
 @end
 
 @interface IGFeedSectionController

@@ -12,6 +12,7 @@ TWEAK_NAME = InstaSly
 InstaSly_FILES = $(shell find Sources/InstaSly -name "*.swift") $(shell find Sources/InstaSlyC -name "*.m")
 InstaSly_SWIFTFLAGS = -ISources/InstaSlyC/include
 InstaSly_CFLAGS = -fobjc-arc
+InstaSly_FRAMEWORKS = NomaePreferences
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 SUBPROJECTS += InstaSlyPreferences
